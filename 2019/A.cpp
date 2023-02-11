@@ -2,19 +2,34 @@
 #define ll long long int
 #define el "\n"
 using namespace std;
+using iii = tuple<int, int, int>;
 
 struct Edge {
-    int to, co2, dist;
+    int co2, dist, to;
 };
+
+class Node;
+vector<Node> v;
 
 class Node {
 public:
     int x, y;
     vector <Edge> adj; 
 
-    void add (int to, int mode){
-        adj.push_back({to, mode, mode});
-        
+    Node(int xp=0, int yp=0){
+        x = xp;
+        y = yp;        
+    }
+
+    int euclidean_dist (const Node &n){
+        return ceil(sqrt((x - n.x)*(x - n.x) + (y - n.y)*(y - n.y)));
+    }
+
+    void add (int to, int mode_cost){
+        // da calcolare        
+        int dist = euclidean_dist(v[to]);
+        int co2 = mode_cost*dist;
+        adj.push_back({co2, dist, to});       
     }
 };
 
@@ -38,7 +53,8 @@ void solve(){
     int n; //number of station
     cin >> n;
 
-    vector<Node> v(n);
+    v.resize(n);
+    vector<iii> temp; // da a costs[mode]
     for(int i=0; i<n; i++){
         cin >> v[i].x;
         cin >> v[i].y;
@@ -47,21 +63,59 @@ void solve(){
         for(int j=0; j<l; j++){
             int to, mode;
             cin >> to >> mode;
-            v[i].add(to, mode);
-            v[to].add(i, mode);
+            temp.push_back({i, to, costs[mode]});
         }
     }
 
-    // *** end parsing ***
+    for (auto x : temp){
+            auto [i, to, cost] = x;
+            v[i].add(to, cost);
+            v[to].add(i, cost);
+    }
+    temp.clear();
 
-    cout << "ok";
+    // adding start and end
+
+    v.push_back(Node(xs, ys));
+    v.push_back(Node(xd, yd));
+    v[n].add(n+1, costs[0]);
+    for (int i=0; i<n; i++){
+        v[n].add(i, costs[0]);
+        v[i].add(n+1, costs[0]);
+    }
+
+    priority_queue <iii, vector<iii>, greater<iii>> pq; // co2, dist, node
+
+    pq.push({0,0,n});
+    vector<int> min_dist(n+2, INT_MAX);
+
+    while(!pq.empty()){
+        auto [co2_curr, dist_curr, node] = pq.top();
+        
+        pq.pop();
+
+        if (node == n+1){
+            cout << co2_curr << el;
+            return;
+        }
+
+        if (min_dist[node] <= dist_curr) continue;
+        min_dist[node] = min(dist_curr,min_dist[node]);
+
+        for(auto x : v[node].adj){
+            auto [co2_cost, dist_cost, to] = x;
+            
+            if(dist_curr + dist_cost <= b) {
+                pq.push({co2_curr + co2_cost, dist_curr + dist_cost, to});
+
+            }
+        }
+    }
+
+    cout << -1 << el;
 }
 
 int main() {
-    Edge e = Edge{1, 2, 3};
-    auto [ to, co2, dist ] = e;
-    // cout << x << y << z;
-    return 0;
     ios::sync_with_stdio(0);
     cin.tie(0);
     solve();
