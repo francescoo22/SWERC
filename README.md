@@ -1,0 +1,1 @@
+## My solutions to some problems of SWERC and other similar competitions
