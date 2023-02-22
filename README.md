@@ -1,1 +1,1 @@
-## My solutions to some problems of SWERC and other similar competitions
+## Solutions to some problems of SWERC and other similar competitions made by me and my team mates
